@@ -64,7 +64,7 @@ func (h *healthchecker) executeHealthChecker() {
 		if code, err := c.fn(); err != nil {
 			nm := runtime.FuncForPC(reflect.ValueOf(c.fn).Pointer()).Name()
 			svc := strings.Split(nm, ".")
-			if len(svc) > 2 {
+			if len(svc) > 1 {
 				nm = svc[1]
 			}
 			c.e = &errInfo{message: err.Error(), code: code, service: nm}
