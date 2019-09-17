@@ -10,7 +10,7 @@ import (
 
 func checkPort() gohealthchecker.Healthfunc {
 	return func() (code int, e error) {
-		conn, err := net.Dial("tcp", ":8085")
+		conn, err := net.Dial("tcp", ":8185")
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
