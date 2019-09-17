@@ -80,7 +80,7 @@ func (h *healthchecker) Add(healthfunc Healthfunc) {
 		return
 	}
 
-	c := h.fns.next
+	c := h.fns
 	for c.next != nil {
 		c = c.next
 	}
@@ -104,8 +104,10 @@ func (a *apiHealthCheck) healthCheckerHandler(w http.ResponseWriter, r *http.Req
 
 	c := a.fns
 	for c != nil {
-		info := info{Code: c.e.code, Message: c.e.message, Service: c.e.service}
-		responseError.Info = append(responseError.Info, info)
+		if c.e != nil {
+			info := info{Code: c.e.code, Message: c.e.message, Service: c.e.service}
+			responseError.Info = append(responseError.Info, info)
+		}
 
 		c = c.next
 	}
