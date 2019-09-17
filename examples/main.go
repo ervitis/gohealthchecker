@@ -3,9 +3,22 @@ package main
 import (
 	"errors"
 	"github.com/ervitis/gohealthchecker"
+	"net"
 	"net/http"
 	"time"
 )
+
+func checkPort() gohealthchecker.Healthfunc {
+	return func() (code int, e error) {
+		conn, err := net.Dial("tcp", ":8085")
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
+
+		_ = conn.Close()
+		return http.StatusOK, nil
+	}
+}
 
 func checkGithub() gohealthchecker.Healthfunc {
 	const myUrl = "https://api.github.com/usrs/ervitis"
@@ -32,6 +45,7 @@ func main() {
 	health := gohealthchecker.NewHealthchecker(http.StatusOK, http.StatusInternalServerError)
 
 	health.Add(checkGithub())
+	health.Add(checkPort())
 
 	panic(http.ListenAndServe(":8085", health.ActivateHealthCheck("health")))
 }
