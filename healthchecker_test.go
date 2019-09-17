@@ -96,4 +96,30 @@ func TestHealthchecker_ActivateHealthCheck(t *testing.T) {
 	if count != 2 {
 		t.Error("the healthcheckers handlers were not activated")
 	}
+
+	count = 0
+	h2 := NewHealthchecker(http.StatusOK, http.StatusInternalServerError)
+
+	health3 := func() Healthfunc {
+		return func() (code int, e error) {
+			count++
+			return 200, nil
+		}
+	}
+
+	h2.Add(health1())
+	h2.Add(health3())
+
+	r = h2.ActivateHealthCheck("/healthtest2")
+
+	w = httptest.NewRecorder()
+	r.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "http://localhost:8082/healthtest2", nil))
+
+	if w.Code != http.StatusOK {
+		t.Error("code is not status ok")
+	}
+
+	if count != 2 {
+		t.Error("the healthcheckers handlers were not activated")
+	}
 }
