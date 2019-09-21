@@ -2,10 +2,10 @@ package gohealthchecker
 
 import (
 	"errors"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 )
 
 func TestNewHealthchecker(t *testing.T) {
@@ -77,11 +77,17 @@ func TestHealthchecker_ActivateHealthCheck(t *testing.T) {
 	h.Add(health2())
 
 	r := h.ActivateHealthCheck("/healthtest")
-	go func() {
-		_ = http.ListenAndServe(":8082", r)
-	}()
 
-	time.Sleep(2 * time.Second)
+	mux := http.NewServeMux()
+	mux.Handle("/healthtest", r)
+
+	srv := httptest.NewUnstartedServer(mux)
+
+	l, _ := net.Listen("tcp", "localhost:8082")
+	srv.Listener = l
+
+	srv.Start()
+	defer srv.Close()
 
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "http://localhost:8082/healthtest", nil))
