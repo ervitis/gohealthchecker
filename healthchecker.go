@@ -121,8 +121,8 @@ func (a *apiHealthCheck) healthCheckerHandler(w http.ResponseWriter, r *http.Req
 	c := a.healthchecker.fns
 	for c != nil {
 		if c.e != nil {
-			info := info{Code: c.e.code, Message: c.e.message, Service: c.e.service}
-			responseError.Info = append(responseError.Info, info)
+			info := &info{Code: c.e.code, Message: c.e.message, Service: c.e.service}
+			responseError.Info = append(responseError.Info, *info)
 		}
 
 		c = c.next

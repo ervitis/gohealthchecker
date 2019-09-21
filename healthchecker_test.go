@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
-	"reflect"
 	"testing"
 	"time"
 )
@@ -14,10 +13,6 @@ func TestNewHealthchecker(t *testing.T) {
 
 	if h.statusOk != http.StatusOK && h.statusKo != http.StatusNotFound {
 		t.Error("statusOk and statusKo are not correctly set")
-	}
-
-	if reflect.TypeOf(*h).Kind() != reflect.Struct {
-		t.Error("the instance is not type of healthchecker")
 	}
 }
 
@@ -82,7 +77,9 @@ func TestHealthchecker_ActivateHealthCheck(t *testing.T) {
 	h.Add(health2())
 
 	r := h.ActivateHealthCheck("/healthtest")
-	go http.ListenAndServe(":8082", r)
+	go func() {
+		_ = http.ListenAndServe(":8082", r)
+	}()
 
 	time.Sleep(2 * time.Second)
 
