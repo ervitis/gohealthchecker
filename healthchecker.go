@@ -12,7 +12,7 @@ import (
 
 type (
 	apiHealthCheck struct {
-		healthchecker
+		healthchecker *Healthchecker
 	}
 
 	info struct {
@@ -32,29 +32,45 @@ type (
 		service string
 	}
 
-	FnNode struct {
-		next *FnNode
+	fnNode struct {
+		next *fnNode
 		e    *errInfo
 		fn   Healthfunc
 	}
 
-	healthchecker struct {
+	// Healthchecker type
+	Healthchecker struct {
 		mtx      sync.Mutex
-		fns      *FnNode
+		fns      *fnNode
 		statusOk int
 		statusKo int
 		nErrors  uint
 		// TODO add logger
 	}
 
+	// Healthfunc is used to define the health check functions
+	// Example:
+	// func checkPort() gohealthchecker.Healthfunc {
+	//	return func() (code int, e error) {
+	//		conn, err := net.Dial("tcp", ":8185")
+	//		if err != nil {
+	//			return http.StatusInternalServerError, err
+	//		}
+	//
+	//		_ = conn.Close()
+	//		return http.StatusOK, nil
+	//	}
+	//}
 	Healthfunc func() (code int, e error)
 )
 
-func NewHealthchecker(statusOk, statusKo int) *healthchecker {
-	return &healthchecker{statusKo: statusKo, statusOk: statusOk, nErrors: 0}
+// NewHealthchecker Constructor
+// Pass the http statuses when it's ok or ko to tell if your microservice is not ready
+func NewHealthchecker(statusOk, statusKo int) *Healthchecker {
+	return &Healthchecker{statusKo: statusKo, statusOk: statusOk, nErrors: 0}
 }
 
-func (h *healthchecker) executeHealthChecker() {
+func (h *Healthchecker) executeHealthChecker() {
 	c := h.fns
 
 	h.mtx.Lock()
@@ -74,9 +90,9 @@ func (h *healthchecker) executeHealthChecker() {
 	}
 }
 
-func (h *healthchecker) Add(healthfunc Healthfunc) {
+func (h *Healthchecker) Add(healthfunc Healthfunc) {
 	if h.fns == nil {
-		h.fns = &FnNode{fn: healthfunc}
+		h.fns = &fnNode{fn: healthfunc}
 		return
 	}
 
@@ -84,25 +100,25 @@ func (h *healthchecker) Add(healthfunc Healthfunc) {
 	for c.next != nil {
 		c = c.next
 	}
-	c.next = &FnNode{fn: healthfunc}
+	c.next = &fnNode{fn: healthfunc}
 }
 
-func (h *healthchecker) clearError() {
+func (h *Healthchecker) clearError() {
 	defer func() {
 		h.nErrors = 0
 	}()
 }
 
 func (a *apiHealthCheck) healthCheckerHandler(w http.ResponseWriter, r *http.Request) {
-	a.executeHealthChecker()
-	if a.nErrors == 0 {
-		w.WriteHeader(a.statusOk)
+	a.healthchecker.executeHealthChecker()
+	if a.healthchecker.nErrors == 0 {
+		w.WriteHeader(a.healthchecker.statusOk)
 		return
 	}
 
-	responseError := &responseError{Code: a.statusKo}
+	responseError := &responseError{Code: a.healthchecker.statusKo}
 
-	c := a.fns
+	c := a.healthchecker.fns
 	for c != nil {
 		if c.e != nil {
 			info := info{Code: c.e.code, Message: c.e.message, Service: c.e.service}
@@ -118,14 +134,14 @@ func (a *apiHealthCheck) healthCheckerHandler(w http.ResponseWriter, r *http.Req
 		panic(err)
 	}
 
-	w.WriteHeader(a.statusKo)
+	w.WriteHeader(a.healthchecker.statusKo)
 	_, _ = w.Write(b)
 }
 
-func (h *healthchecker) ActivateHealthCheck(routePath string) *mux.Router {
+func (h *Healthchecker) ActivateHealthCheck(routePath string) *mux.Router {
 	r := mux.NewRouter()
 
-	api := &apiHealthCheck{healthchecker: *h}
+	api := &apiHealthCheck{healthchecker: h}
 
 	if string(routePath[0]) != "/" {
 		routePath = "/" + routePath
