@@ -44,8 +44,8 @@ func checkGithub() gohealthchecker.Healthfunc {
 func main() {
 	health := gohealthchecker.NewHealthchecker(http.StatusOK, http.StatusInternalServerError)
 
-	health.Add(checkGithub())
-	health.Add(checkPort())
+	health.Add("checkGithub", checkGithub())
+	health.Add("checkPort", checkPort())
 
 	panic(http.ListenAndServe(":8085", health.ActivateHealthCheck("health")))
 }
