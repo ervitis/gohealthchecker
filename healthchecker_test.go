@@ -25,7 +25,7 @@ func TestHealthchecker_Add(t *testing.T) {
 		}
 	}
 
-	h.Add("health1", health1())
+	h.Add(health1(), "health1")
 
 	if h.fns.fn == nil {
 		t.Error("not set function for healthchecking")
@@ -46,8 +46,8 @@ func TestHealthchecker_Add2(t *testing.T) {
 		}
 	}
 
-	h.Add("health1", health1())
-	h.Add("health2", health2())
+	h.Add(health1(), "health1")
+	h.Add(health2(), "health2")
 
 	if h.fns.next.fn == nil {
 		t.Error("error setting two handler functions for healthcheck")
@@ -73,8 +73,8 @@ func TestHealthchecker_ActivateHealthCheck(t *testing.T) {
 		}
 	}
 
-	h.Add("health1", health1())
-	h.Add("health2", health2())
+	h.Add(health1(), "health1")
+	h.Add(health2(), "health2")
 
 	r := h.ActivateHealthCheck("/healthtest")
 
@@ -110,8 +110,8 @@ func TestHealthchecker_ActivateHealthCheck(t *testing.T) {
 		}
 	}
 
-	h2.Add("health1", health1())
-	h2.Add("health3", health3())
+	h2.Add(health1(), "health1")
+	h2.Add(health3())
 
 	r = h2.ActivateHealthCheck("/healthtest2")
 
@@ -124,5 +124,15 @@ func TestHealthchecker_ActivateHealthCheck(t *testing.T) {
 
 	if count != 2 {
 		t.Error("the healthcheckers handlers were not activated")
+	}
+}
+
+func TestToString(t *testing.T) {
+	if "hello" != toString("hello") {
+		t.Error("it should be a string but returned empty")
+	}
+
+	if "" != toString(2) {
+		t.Error("it is not a string and it returned something")
 	}
 }

@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"net/http"
+	"reflect"
+	"runtime"
+	"strings"
 	"sync"
 )
 
@@ -76,6 +79,14 @@ func (h *Healthchecker) executeHealthChecker() {
 
 	for c != nil {
 		if code, err := c.fn(); err != nil {
+			if c.name == "" {
+				nm := runtime.FuncForPC(reflect.ValueOf(c.fn).Pointer()).Name()
+				svc := strings.Split(nm, ".")
+				if len(svc) > 1 {
+					c.name = svc[1]
+				}
+			}
+
 			c.e = &errInfo{message: err.Error(), code: code, service: c.name}
 			h.nErrors++
 		}
@@ -83,9 +94,16 @@ func (h *Healthchecker) executeHealthChecker() {
 	}
 }
 
-func (h *Healthchecker) Add(nameFunction string, healthfunc Healthfunc) {
+func toString(ts interface{}) string {
+	s, _ := ts.(string)
+	return s
+}
+
+func (h *Healthchecker) Add(healthfunc Healthfunc, nameFunction ...interface{}) {
+	nf := toString(nameFunction)
+
 	if h.fns == nil {
-		h.fns = &fnNode{fn: healthfunc, name: nameFunction}
+		h.fns = &fnNode{fn: healthfunc, name: nf}
 		return
 	}
 
@@ -93,7 +111,7 @@ func (h *Healthchecker) Add(nameFunction string, healthfunc Healthfunc) {
 	for c.next != nil {
 		c = c.next
 	}
-	c.next = &fnNode{fn: healthfunc, name: nameFunction}
+	c.next = &fnNode{fn: healthfunc, name: nf}
 }
 
 func (h *Healthchecker) clearError() {
