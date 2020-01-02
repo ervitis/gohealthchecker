@@ -94,9 +94,17 @@ func (h *Healthchecker) executeHealthChecker() {
 	}
 }
 
-func (h *Healthchecker) Add(healthfunc Healthfunc, nameFunction string) {
+func toString(ts []string) string {
+	if len(ts) > 0 {
+		return ts[0]
+	}
+	return ""
+}
+
+func (h *Healthchecker) Add(healthfunc Healthfunc, nameFunction ...string) {
+	nf := toString(nameFunction)
 	if h.fns == nil {
-		h.fns = &fnNode{fn: healthfunc, name: nameFunction}
+		h.fns = &fnNode{fn: healthfunc, name: nf}
 		return
 	}
 
@@ -104,7 +112,7 @@ func (h *Healthchecker) Add(healthfunc Healthfunc, nameFunction string) {
 	for c.next != nil {
 		c = c.next
 	}
-	c.next = &fnNode{fn: healthfunc, name: nameFunction}
+	c.next = &fnNode{fn: healthfunc, name: nf}
 }
 
 func (h *Healthchecker) clearError() {

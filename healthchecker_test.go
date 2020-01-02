@@ -111,7 +111,7 @@ func TestHealthchecker_ActivateHealthCheck(t *testing.T) {
 	}
 
 	h2.Add(health1(), "health1")
-	h2.Add(health3(), "health3")
+	h2.Add(health3())
 
 	r = h2.ActivateHealthCheck("/healthtest2")
 
@@ -127,7 +127,13 @@ func TestHealthchecker_ActivateHealthCheck(t *testing.T) {
 	}
 }
 
-func TestHealthchecker_FunctionName(t *testing.T) {
+func TestToString(t *testing.T) {
+	if "hello" != toString([]string{"hello"}) {
+		t.Error("it should be a string but returned empty")
+	}
+}
+
+func TestHealthchecker_CustomFunctionName(t *testing.T) {
 	funcName := "funcName"
 	h := NewHealthchecker(http.StatusOK, http.StatusInternalServerError)
 
@@ -140,6 +146,6 @@ func TestHealthchecker_FunctionName(t *testing.T) {
 	h.Add(health(), funcName)
 
 	if h.fns.name != funcName {
-		t.Error("error setting function name")
+		t.Error("error setting custom function name")
 	}
 }
