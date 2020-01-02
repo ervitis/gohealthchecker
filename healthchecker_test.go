@@ -128,11 +128,24 @@ func TestHealthchecker_ActivateHealthCheck(t *testing.T) {
 }
 
 func TestToString(t *testing.T) {
-	if "hello" != toString("hello") {
+	if "hello" != toString([]string{"hello"}) {
 		t.Error("it should be a string but returned empty")
 	}
+}
 
-	if "" != toString(2) {
-		t.Error("it is not a string and it returned something")
+func TestHealthchecker_CustomFunctionName(t *testing.T) {
+	funcName := "funcName"
+	h := NewHealthchecker(http.StatusOK, http.StatusInternalServerError)
+
+	health := func() Healthfunc {
+		return func() (code int, e error) {
+			return 200, nil
+		}
+	}
+
+	h.Add(health(), funcName)
+
+	if h.fns.name != funcName {
+		t.Error("error setting custom function name")
 	}
 }

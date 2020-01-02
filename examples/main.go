@@ -29,7 +29,7 @@ func checkGithub() gohealthchecker.Healthfunc {
 			return http.StatusInternalServerError, err
 		}
 
-		client := http.Client{Timeout: 10*time.Second}
+		client := http.Client{Timeout: 10 * time.Second}
 		resp, err := client.Do(req)
 		if err != nil {
 			return http.StatusInternalServerError, err

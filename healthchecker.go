@@ -94,14 +94,15 @@ func (h *Healthchecker) executeHealthChecker() {
 	}
 }
 
-func toString(ts interface{}) string {
-	s, _ := ts.(string)
-	return s
+func toString(ts []string) string {
+	if len(ts) > 0 {
+		return ts[0]
+	}
+	return ""
 }
 
-func (h *Healthchecker) Add(healthfunc Healthfunc, nameFunction ...interface{}) {
+func (h *Healthchecker) Add(healthfunc Healthfunc, nameFunction ...string) {
 	nf := toString(nameFunction)
-
 	if h.fns == nil {
 		h.fns = &fnNode{fn: healthfunc, name: nf}
 		return
