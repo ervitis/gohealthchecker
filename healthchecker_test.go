@@ -111,7 +111,7 @@ func TestHealthchecker_ActivateHealthCheck(t *testing.T) {
 	}
 
 	h2.Add(health1(), "health1")
-	h2.Add(health3())
+	h2.Add(health3(), "health3")
 
 	r = h2.ActivateHealthCheck("/healthtest2")
 
