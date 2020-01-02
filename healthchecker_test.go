@@ -127,16 +127,6 @@ func TestHealthchecker_ActivateHealthCheck(t *testing.T) {
 	}
 }
 
-func TestToString(t *testing.T) {
-	if "hello" != toString("hello") {
-		t.Error("it should be a string but returned empty")
-	}
-
-	if "" != toString(2) {
-		t.Error("it is not a string and it returned something")
-	}
-}
-
 func TestHealthchecker_FunctionName(t *testing.T) {
 	funcName := "funcName"
 	h := NewHealthchecker(http.StatusOK, http.StatusInternalServerError)
