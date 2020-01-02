@@ -141,15 +141,15 @@ func TestHealthchecker_FunctionName(t *testing.T) {
 	funcName := "funcName"
 	h := NewHealthchecker(http.StatusOK, http.StatusInternalServerError)
 
-	health1 := func() Healthfunc {
+	health := func() Healthfunc {
 		return func() (code int, e error) {
 			return 200, nil
 		}
 	}
 
-	h.Add(health1(), funcName)
+	h.Add(health(), funcName)
 
 	if h.fns.name != funcName {
-		t.Error("error setting two handler functions for healthcheck")
+		t.Error("error setting function name")
 	}
 }
