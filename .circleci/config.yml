@@ -1,0 +1,31 @@
+version: 2
+jobs:
+  build:
+
+    docker:
+      - image: circleci/golang:1.13
+
+    parallelism: 2
+
+    environment:
+      TEST_RESULTS: /tmp/test-results
+
+    steps:
+      - checkout
+      - run: mkdir -p $TEST_RESULTS
+
+      - restore_cache:
+          keys:
+            - go-mod-{{ checksum "go.sum" }}
+
+      - run:
+          name: golint
+          command: make lint
+
+      - run:
+          name: test
+          command: |
+            make test
+            make cover
+      - store_artifacts:
+          path: $TEST_RESULTS
