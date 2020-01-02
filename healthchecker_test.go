@@ -136,3 +136,20 @@ func TestToString(t *testing.T) {
 		t.Error("it is not a string and it returned something")
 	}
 }
+
+func TestHealthchecker_FunctionName(t *testing.T) {
+	funcName := "funcName"
+	h := NewHealthchecker(http.StatusOK, http.StatusInternalServerError)
+
+	health1 := func() Healthfunc {
+		return func() (code int, e error) {
+			return 200, nil
+		}
+	}
+
+	h.Add(health1(), funcName)
+
+	if h.fns.name != funcName {
+		t.Error("error setting two handler functions for healthcheck")
+	}
+}
