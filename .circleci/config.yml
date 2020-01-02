@@ -1,6 +1,11 @@
 version: 2
 jobs:
   build:
+    branches:
+      only:
+        - master
+        - /hotfix*/
+
     docker:
       - image: circleci/golang:1.13
 
