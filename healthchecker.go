@@ -99,11 +99,9 @@ func toString(ts interface{}) string {
 	return s
 }
 
-func (h *Healthchecker) Add(healthfunc Healthfunc, nameFunction ...interface{}) {
-	nf := toString(nameFunction)
-
+func (h *Healthchecker) Add(healthfunc Healthfunc, nameFunction string) {
 	if h.fns == nil {
-		h.fns = &fnNode{fn: healthfunc, name: nf}
+		h.fns = &fnNode{fn: healthfunc, name: nameFunction}
 		return
 	}
 
@@ -111,7 +109,7 @@ func (h *Healthchecker) Add(healthfunc Healthfunc, nameFunction ...interface{}) 
 	for c.next != nil {
 		c = c.next
 	}
-	c.next = &fnNode{fn: healthfunc, name: nf}
+	c.next = &fnNode{fn: healthfunc, name: nameFunction}
 }
 
 func (h *Healthchecker) clearError() {
