@@ -1,7 +1,10 @@
 package gohealthchecker
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
+	"github.com/gorilla/mux"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -51,6 +54,90 @@ func TestHealthchecker_Add2(t *testing.T) {
 
 	if h.fns.next.fn == nil {
 		t.Error("error setting two handler functions for healthcheck")
+	}
+}
+
+func TestHealthchecker_ActivateHealthCheck_Router(t *testing.T) {
+	h := NewHealthchecker(http.StatusOK, http.StatusBadRequest)
+	r := h.ActivateHealthCheck("healths")
+
+	err := r.Walk(func(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
+		ts, _ := route.GetPathTemplate()
+		if ts != "/healths" {
+			return fmt.Errorf("not correct path")
+		}
+		return nil
+	})
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func TestHealthchecker_Add3(t *testing.T) {
+	h := NewHealthchecker(http.StatusOK, http.StatusBadRequest)
+
+	health1 := func() Healthfunc {
+		return func() (code int, e error) {
+			return 200, nil
+		}
+	}
+	health2 := func() Healthfunc {
+		return func() (code int, e error) {
+			return 200, nil
+		}
+	}
+	health3 := func() Healthfunc {
+		return func() (code int, e error) {
+			return 200, nil
+		}
+	}
+
+	h.Add(health1(), "health1")
+	h.Add(health2(), "health2")
+	h.Add(health3(), "health3")
+
+	count := 0
+	n := h.fns
+	for n != nil {
+		count++
+		n = n.next
+	}
+	if count != 3 {
+		t.Errorf("I have added 3 functions so count should be 3, not %d", count)
+	}
+}
+
+func TestHealthchecker_ActivateHealthCheck_WithoutName(t *testing.T) {
+	h := NewHealthchecker(http.StatusOK, http.StatusBadRequest)
+
+	health1 := func() Healthfunc {
+		return func() (code int, e error) {
+			return 500, fmt.Errorf("something happened")
+		}
+	}
+
+	h.Add(health1())
+	r := h.ActivateHealthCheck("health")
+
+	muxRouter := http.NewServeMux()
+	muxRouter.Handle("/healthtest", r)
+
+	srv := httptest.NewUnstartedServer(muxRouter)
+
+	l, _ := net.Listen("tcp", "localhost:8082")
+	srv.Listener = l
+
+	srv.Start()
+	defer srv.Close()
+
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "http://localhost:8082/health", nil))
+
+	var body map[string]interface{}
+	_ = json.NewDecoder(w.Body).Decode(&body)
+
+	if body == nil {
+		t.Errorf("the body should not be nil")
 	}
 }
 
