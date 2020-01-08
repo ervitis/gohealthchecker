@@ -101,6 +101,8 @@ func toString(ts []string) string {
 	return ""
 }
 
+// Add appends to the healthchecker instance a function of type Healthfunc and an optional
+// name for the service which it prints the JSON result
 func (h *Healthchecker) Add(healthfunc Healthfunc, nameFunction ...string) {
 	nf := toString(nameFunction)
 	if h.fns == nil {
@@ -150,6 +152,8 @@ func (a *apiHealthCheck) healthCheckerHandler(w http.ResponseWriter, r *http.Req
 	_, _ = w.Write(b)
 }
 
+// ActivateHealthCheck returns a Router used for the handler
+// it needs a routePath to setup the url of the health check
 func (h *Healthchecker) ActivateHealthCheck(routePath string) *mux.Router {
 	r := mux.NewRouter()
 

@@ -102,7 +102,7 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 * **ervitis** - *Initial work* - [ervitis](https://github.com/ervitis)
 
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
+See also the list of [contributors](./contributors.md) who participated in this project.
 
 ## License
 
