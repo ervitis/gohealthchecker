@@ -1,6 +1,6 @@
 # gohealthchecker
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/ervitis/gohealthchecker)](https://goreportcard.com/report/github.com/ervitis/gohealthchecker) [![codecov](https://codecov.io/gh/ervitis/gohealthchecker/branch/master/graph/badge.svg)](https://codecov.io/gh/ervitis/gohealthchecker) [![Build Status](https://travis-ci.org/ervitis/gohealthchecker.svg?branch=master)](https://travis-ci.org/ervitis/gohealthchecker) [![CircleCI](https://circleci.com/gh/ervitis/gohealthchecker.svg?style=svg)](https://circleci.com/gh/ervitis/gohealthchecker) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)  
+[![Go Report Card](https://goreportcard.com/badge/github.com/ervitis/gohealthchecker)](https://goreportcard.com/report/github.com/ervitis/gohealthchecker) [![codecov](https://codecov.io/gh/ervitis/gohealthchecker/branch/master/graph/badge.svg)](https://codecov.io/gh/ervitis/gohealthchecker) [![Build Status](https://travis-ci.org/ervitis/gohealthchecker.svg?branch=master)](https://travis-ci.org/ervitis/gohealthchecker) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)  
 
 Go healhchecker is a library for building easy custom functions to use them as your health check in your microservice
 
