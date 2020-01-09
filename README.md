@@ -1,3 +1,5 @@
+![gohealthchecker-icon](./assets/gohealthchecker.png)
+
 # gohealthchecker
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/ervitis/gohealthchecker)](https://goreportcard.com/report/github.com/ervitis/gohealthchecker) [![codecov](https://codecov.io/gh/ervitis/gohealthchecker/branch/master/graph/badge.svg)](https://codecov.io/gh/ervitis/gohealthchecker) [![Build Status](https://travis-ci.org/ervitis/gohealthchecker.svg?branch=master)](https://travis-ci.org/ervitis/gohealthchecker) [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)  
