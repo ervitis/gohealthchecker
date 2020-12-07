@@ -10,7 +10,7 @@ import (
 
 func checkPort() gohealthchecker.Healthfunc {
 	return func() (code int, e error) {
-		conn, err := net.Dial("tcp", ":8185")
+		conn, err := net.Dial("tcp", ":8085")
 		if err != nil {
 			return http.StatusInternalServerError, err
 		}
@@ -21,7 +21,7 @@ func checkPort() gohealthchecker.Healthfunc {
 }
 
 func checkGithub() gohealthchecker.Healthfunc {
-	const myUrl = "https://api.github.com/usrs/ervitis"
+	const myUrl = "https://api.github.com/users/ervitis"
 
 	return func() (code int, e error) {
 		req, err := http.NewRequest(http.MethodGet, myUrl, nil)

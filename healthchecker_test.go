@@ -165,10 +165,10 @@ func TestHealthchecker_ActivateHealthCheck(t *testing.T) {
 
 	r := h.ActivateHealthCheck("/healthtest")
 
-	mux := http.NewServeMux()
-	mux.Handle("/healthtest", r)
+	muxRouter := http.NewServeMux()
+	muxRouter.Handle("/healthtest", r)
 
-	srv := httptest.NewUnstartedServer(mux)
+	srv := httptest.NewUnstartedServer(muxRouter)
 
 	l, _ := net.Listen("tcp", "localhost:8082")
 	srv.Listener = l
@@ -234,5 +234,36 @@ func TestHealthchecker_CustomFunctionName(t *testing.T) {
 
 	if h.fns.name != funcName {
 		t.Error("error setting custom function name")
+	}
+}
+
+func TestHealthChecker_ReturnsOnlySystemCheck(t *testing.T) {
+	h := NewHealthchecker(http.StatusOK, http.StatusInternalServerError)
+
+	r := h.ActivateHealthCheck("/healthtest")
+
+	muxRouter := http.NewServeMux()
+	muxRouter.Handle("/healthtest", r)
+
+	srv := httptest.NewUnstartedServer(muxRouter)
+
+	l, _ := net.Listen("tcp", "localhost:8082")
+	srv.Listener = l
+
+	srv.Start()
+	defer srv.Close()
+
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "http://localhost:8082/healthtest", nil))
+
+	if w.Code != http.StatusOK {
+		t.Error("code is not status ok")
+	}
+
+	var body map[string]interface{}
+	_ = json.Unmarshal(w.Body.Bytes(), &body)
+
+	if _, ok := body["systemInformation"]; !ok {
+		t.Error("we should see the systemInformation data inside the body")
 	}
 }

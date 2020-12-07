@@ -2,12 +2,15 @@ package gohealthchecker
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gorilla/mux"
 	"net/http"
+	"os"
 	"reflect"
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 )
 
 type (
@@ -21,15 +24,32 @@ type (
 		Service string `json:"service"`
 	}
 
-	responseError struct {
-		Info []info `json:"info"`
-		Code int    `json:"code"`
+	response struct {
+		Info       []info                    `json:"info,omitempty"`
+		Code       int                       `json:"code"`
+		SystemInfo SystemInformationResponse `json:"systemInformation"`
 	}
 
 	errInfo struct {
 		code    int
 		message string
 		service string
+	}
+
+	// SystemInformationResponse body response struct data
+	SystemInformationResponse struct {
+		ProcessStatus string `json:"processStatus"`
+		ProcessActive bool   `json:"processActive"`
+		Pid           uint64 `json:"pid"`
+		StartTime     string `json:"startTime"`
+		Memory        struct {
+			Total     uint64 `json:"total"`
+			Free      uint64 `json:"free"`
+			Available uint64 `json:"available"`
+		} `json:"memory"`
+		IpAddress      string `json:"ipAddress"`
+		RuntimeVersion string `json:"runtimeVersion"`
+		CanAcceptWork  bool   `json:"canAcceptWork"`
 	}
 
 	fnNode struct {
@@ -41,12 +61,12 @@ type (
 
 	// Healthchecker type
 	Healthchecker struct {
-		mtx      sync.Mutex
-		fns      *fnNode
-		statusOk int
-		statusKo int
-		nErrors  uint
-		// TODO add logger
+		mtx        sync.Mutex
+		fns        *fnNode
+		statusOk   int
+		statusKo   int
+		nErrors    uint
+		systemInfo *SystemInformation
 	}
 
 	// Healthfunc is used to define the health check functions
@@ -68,7 +88,7 @@ type (
 // NewHealthchecker Constructor
 // Pass the http statuses when it's ok or ko to tell if your microservice is not ready
 func NewHealthchecker(statusOk, statusKo int) *Healthchecker {
-	return &Healthchecker{statusKo: statusKo, statusOk: statusOk, nErrors: 0}
+	return &Healthchecker{statusKo: statusKo, statusOk: statusOk, nErrors: 0, systemInfo: &SystemInformation{startTime: time.Now()}}
 }
 
 func (h *Healthchecker) executeHealthChecker() {
@@ -92,6 +112,37 @@ func (h *Healthchecker) executeHealthChecker() {
 		}
 		c = c.next
 	}
+
+	// do check system
+	h.recoverFromPanic()
+	if err := h.systemInfo.GetSystemInfo(); err != nil {
+		h.nErrors++
+		panic(err.Error())
+	}
+}
+
+func (h *Healthchecker) responseSystemFactory() *response {
+	r := &response{}
+	r.SystemInfo.ProcessActive = h.systemInfo.processActive
+	r.SystemInfo.ProcessStatus = h.systemInfo.processStatus
+	r.SystemInfo.Memory.Available = h.systemInfo.memory.available
+	r.SystemInfo.Memory.Total = h.systemInfo.memory.total
+	r.SystemInfo.Memory.Free = h.systemInfo.memory.free
+	r.SystemInfo.CanAcceptWork = h.systemInfo.canAcceptWork
+	r.SystemInfo.Pid = h.systemInfo.pid
+	r.SystemInfo.IpAddress = h.systemInfo.ipAddress.ipAddress
+	r.SystemInfo.RuntimeVersion = h.systemInfo.runtimeVersion
+	r.SystemInfo.StartTime = h.systemInfo.startTime.Format(time.RFC3339)
+
+	return r
+}
+
+func (h *Healthchecker) recoverFromPanic() {
+	defer func() {
+		if r := recover(); r != nil {
+			_, _ = fmt.Fprintf(os.Stdout, "panic at %v", time.Now().Format(time.RFC3339))
+		}
+	}()
 }
 
 func toString(ts []string) string {
@@ -123,27 +174,32 @@ func (h *Healthchecker) clearError() {
 	}()
 }
 
-func (a *apiHealthCheck) healthCheckerHandler(w http.ResponseWriter, r *http.Request) {
+func (a *apiHealthCheck) healthCheckerHandler(w http.ResponseWriter, _ *http.Request) {
 	a.healthchecker.executeHealthChecker()
+	resp := a.healthchecker.responseSystemFactory()
+
 	if a.healthchecker.nErrors == 0 {
+		resp.Code = a.healthchecker.statusOk
+		b, _ := json.Marshal(resp)
 		w.WriteHeader(a.healthchecker.statusOk)
+		_, _ = w.Write(b)
 		return
 	}
 
-	responseError := &responseError{Code: a.healthchecker.statusKo}
+	resp.Code = a.healthchecker.statusKo
 
 	c := a.healthchecker.fns
 	for c != nil {
 		if c.e != nil {
 			info := &info{Code: c.e.code, Message: c.e.message, Service: c.e.service}
-			responseError.Info = append(responseError.Info, *info)
+			resp.Info = append(resp.Info, *info)
 		}
 
 		c = c.next
 	}
 	a.healthchecker.clearError()
 
-	b, err := json.Marshal(responseError)
+	b, err := json.Marshal(resp)
 	if err != nil {
 		panic(err)
 	}
