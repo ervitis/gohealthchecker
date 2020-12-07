@@ -72,7 +72,21 @@ The message would be like this:
       "service":"checkPort"
     }
   ],
-  "code":500
+  "code":500,
+  "systemInformation":{
+    "processStatus":"S",
+    "processActive":true,
+    "pid":13521,
+    "startTime":"2020-12-07T11:23:18+01:00",
+    "memory":{
+      "total":16307060,
+      "free":6811484,
+      "available":9923808
+    },
+    "ipAddress":"192.168.1.2",
+    "runtimeVersion":"go1.15.4",
+    "canAcceptWork":true
+  }
 }
 ```
 
